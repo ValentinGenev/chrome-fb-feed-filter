@@ -1,0 +1,29 @@
+{
+    "name": "Facebook Feed Filter",
+    "description": "A Chrome extension that let's Facebook users filter the posts in their feeds.",
+    "version": "0.1",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "background.js"
+    },
+    "permissions": ["storage", "scripting"],
+    "host_permissions": ["https://*.facebook.com/*"],
+    "action": {
+        "default_popup": "settings.html"
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://*.facebook.com/*"],
+            "js": [
+                "./assets/js/read-feed.js"
+            ]
+        }
+    ],
+    "options_page": "settings.html",
+    "icons": {
+        "16": "./assets/images/facebook_feed_icon_16.png",
+        "32": "./assets/images/facebook_feed_icon_32.png",
+        "48": "./assets/images/facebook_feed_icon_48.png",
+        "128": "./assets/images/facebook_feed_icon_128.png"
+    }
+}

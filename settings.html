@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="assets/css/settings.css">
+    </head>
+    <body>
+        <header>
+            <h1>Facebook Feed Filter</h1>
+            <p>A Chrome extension that let's Facebook users filter the posts in their feeds.</p>
+        </header>
+        <form id="request_data">
+            <fieldset>
+                <label for="posters">Hide by poster</label>
+                <input id="posters" name="posters" type="text" placeholder="John Doe, Lego Inc" required>
+                <p><em>Split posters with coma.</em></p>
+            </fieldset>
+            <input type="submit" value="Hide">
+        </form>
+
+        <script src="assets/vendor/crypto-js.min.js"></script>
+        <script src="assets/vendor/fp.min.js"></script>
+        <script src="assets/js/settings.js"></script>
+    </body>
+</html>
