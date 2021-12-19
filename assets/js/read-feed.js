@@ -1,18 +1,25 @@
 const SELECTORS = {
     feed: '[role="feed"]',
+    posts: '[data-pagelet*="FeedUnit"]'
 }
 const FILTERS = {}
+// TODO: add hidden posts counter
 
 chrome.storage.local.get(
-    ['posters'],
+    ['posters', 'suggestions'],
     filters => { 
         for (const type in filters) {
             FILTERS[type] = filters[type]
         }
 
+        filterFirstPost()
         startFiltering()
     }
 )
+
+function filterFirstPost() {
+    filterPosts(document.querySelectorAll(SELECTORS.posts))
+}
 
 function startFiltering() {
     const feed = document.querySelector(SELECTORS.feed)
@@ -24,8 +31,9 @@ function startFiltering() {
 }
 
 function filterPosts(posts) {
-    // TODO: add more types of filters. For example: suggestions
-    posts.forEach(post => hideByPoster(post))
+    posts.forEach(post => {
+        hideByPoster(post) || hideIfSuggestion(post) && alertIfPostHidden()
+    })
 }
 
 function hideByPoster(post) {
@@ -34,8 +42,7 @@ function hideByPoster(post) {
     let wasHidden = false
 
     posters.forEach(poster => {
-        if (content.indexOf(poster) > -1) {
-            // TODO: display = none might cause issues, hide in different manner
+        if (content.indexOf(poster) !== -1) {
             post.style.display = 'none'
             wasHidden = true
         }
@@ -45,5 +52,22 @@ function hideByPoster(post) {
 }
 
 function getPosters() {
-    return FILTERS.posters.split(',').map(poster => poster.trim())
+    return FILTERS.posters ?
+        FILTERS.posters.split(',').map(poster => poster.trim()) : []
+}
+
+function hideIfSuggestion(post) {
+    const content = post.innerHTML
+    let wasHidden = false
+
+    if (content.indexOf('Suggested for you') !== -1) {
+        post.style.display = 'none'
+        wasHidden = true
+    }
+
+    return wasHidden
+}
+
+function alertIfPostHidden() {
+    console.log('Post hidden.')
 }
