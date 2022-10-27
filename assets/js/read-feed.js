@@ -1,73 +1,43 @@
 const SELECTORS = {
-    feed: '[role="feed"]',
+    feed: '[role="feed"] > div',
     posts: '[data-pagelet*="FeedUnit"]'
 }
-const FILTERS = {}
+let FILTERS = {}
 // TODO: add hidden posts counter
 
 chrome.storage.local.get(
-    ['posters', 'suggestions'],
-    filters => { 
-        for (const type in filters) {
-            FILTERS[type] = filters[type]
-        }
-
-        filterFirstPost()
-        startFiltering()
+    ['filters'],
+    filters => {
+        FILTERS['filters'] = filters['filters']
+        const firstPosts = document.querySelectorAll(SELECTORS.posts)
+        hidePosts(firstPosts)
+        filterNewPosts(firstPosts[0]?.parentNode)
     }
 )
 
-function filterFirstPost() {
-    filterPosts(document.querySelectorAll(SELECTORS.posts))
-}
-
-function startFiltering() {
-    const feed = document.querySelector(SELECTORS.feed)
+function filterNewPosts(postsWrapper) {
     const observer = new MutationObserver((mutationList) => {
-        mutationList.forEach(mutation => filterPosts(mutation.addedNodes))
+        mutationList.forEach(mutation => hidePosts(mutation.addedNodes))
     })
 
-    observer.observe(feed, { childList: true })
+    observer.observe(postsWrapper, { childList: true })
 }
 
-function filterPosts(posts) {
+function hidePosts(posts) {
     posts.forEach(post => {
-        hideByPoster(post) || hideIfSuggestion(post) && alertIfPostHidden()
+        const content = post.innerHTML
+        const filters = getFilters()
+
+        filters.forEach(filter => {
+            if (content.indexOf(filter) !== -1) {
+                post.style.display = 'none'
+                console.log('sod off...')
+            }
+        })
     })
 }
 
-function hideByPoster(post) {
-    const content = post.innerHTML
-    const posters = getPosters()
-    let wasHidden = false
-
-    posters.forEach(poster => {
-        if (content.indexOf(poster) !== -1) {
-            post.style.display = 'none'
-            wasHidden = true
-        }
-    })
-
-    return wasHidden
-}
-
-function getPosters() {
-    return FILTERS.posters ?
-        FILTERS.posters.split(',').map(poster => poster.trim()) : []
-}
-
-function hideIfSuggestion(post) {
-    const content = post.innerHTML
-    let wasHidden = false
-
-    if (content.indexOf('Suggested for you') !== -1) {
-        post.style.display = 'none'
-        wasHidden = true
-    }
-
-    return wasHidden
-}
-
-function alertIfPostHidden() {
-    console.log('Post hidden.')
+function getFilters() {
+    return FILTERS.filters ?
+        FILTERS.filters.split(',').map(poster => poster.trim()) : []
 }
