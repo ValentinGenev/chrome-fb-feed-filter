@@ -1,9 +1,7 @@
 const SELECTORS = {
-    feed: '[role="feed"] > div',
     posts: '[data-pagelet*="FeedUnit"]'
 }
 let FILTERS = {}
-// TODO: add hidden posts counter
 
 chrome.storage.local.get(
     ['filters'],
