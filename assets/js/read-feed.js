@@ -1,13 +1,10 @@
-const SELECTORS = {
-    posts: '[data-pagelet*="FeedUnit"]'
-}
-let FILTERS = {}
+let settings
 
 chrome.storage.local.get(
-    ['filters'],
-    filters => {
-        FILTERS['filters'] = filters['filters']
-        const firstPosts = document.querySelectorAll(SELECTORS.posts)
+    ['filters', 'selector'],
+    s => {
+        settings = s
+        const firstPosts = document.querySelectorAll(settings.selector)
         hidePosts(firstPosts)
         filterNewPosts(firstPosts[0]?.parentNode)
     }
@@ -29,13 +26,13 @@ function hidePosts(posts) {
         filters.forEach(filter => {
             if (content.indexOf(filter) !== -1) {
                 post.style.display = 'none'
-                console.log('sod off...')
+                console.info('FB-FEED-FILTER:', 'post hidden')
             }
         })
     })
 }
 
 function getFilters() {
-    return FILTERS.filters ?
-        FILTERS.filters.split(',').map(poster => poster.trim()) : []
+    return settings.filters ?
+        settings.filters.split(',').map(poster => poster.trim()) : []
 }
