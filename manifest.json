@@ -1,7 +1,7 @@
 {
     "name": "Facebook Feed Filter",
-    "description": "A Chrome extension that let's Facebook users filter the posts in their feeds.",
-    "version": "0.1",
+    "description": "A Chrome extension that lets Facebook users filter the posts in their feeds.",
+    "version": "0.2",
     "manifest_version": 3,
     "background": {
         "service_worker": "background.js"
@@ -15,7 +15,9 @@
         {
             "matches": ["https://*.facebook.com/*"],
             "js": [
-                "./assets/js/read-feed.js"
+                "./assets/js/FeedCleaner.js",
+                "./assets/js/FeedObserver.js",
+                "./assets/js/init.js"
             ]
         }
     ],

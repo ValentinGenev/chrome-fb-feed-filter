@@ -10,6 +10,13 @@
         </header>
         <form id="request_data">
             <fieldset>
+                <label for="debugMode"><strong>Debug mode</strong></label>
+                <div style="display: flex">
+                    <input id="debugMode" name="debugMode" type="checkbox" style="margin-right: .25rem;">
+                    <p>Makes the posts 50% smaller instead of hiding them.</p>
+                </div>
+            </fieldset>
+            <fieldset>
                 <label for="selector"><strong>The post container's selector</strong></label>
                 <input id="selector" name="selector" type="text" placeholder="h3 + div + div > .x1lliihq">
                 <p>Latest working selector: <em>h3 + div + div > .x1lliihq</em></p>
