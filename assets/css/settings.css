@@ -39,6 +39,14 @@ form fieldset label {
     display: block;
     margin-bottom: .25rem;
 }
+form fieldset textarea {
+    min-height: 8em;
+    padding: .5rem .75em;
+    box-sizing: border-box;
+    resize: vertical;
+    font-style: inherit;
+}
+form fieldset textarea,
 form fieldset input[type=text] {
     width: 100%;
     margin-bottom: .25rem;
