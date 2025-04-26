@@ -1,4 +1,6 @@
 class FeedCleaner {
+    bannedAriaLabels = ['sponsored', 'shop now', 'sign up', 'order now', 'get offer']
+
     constructor(initialPosts, filters, isDebugMode) {
         this.initialPosts = initialPosts
         this.filters = filters
@@ -14,19 +16,23 @@ class FeedCleaner {
 
     clean(posts = this.initialPosts) {
         for (const post of posts) {
+            let isPostHidden = false
             for (const filter of this.filters) {
                 if (post.innerHTML.indexOf(filter) >= 0) {
                     this.hidePost(post)
+                    isPostHidden = true
                     break
                 }
             }
 
-            this.checkForLabels(post)
+            if (!isPostHidden) {
+                this.checkForBannedLabels(post)
+            }
         }
     }
 
-    async checkForLabels(post) {
-        if (await this.hasSponsoredLabel(post)) {
+    async checkForBannedLabels(post) {
+        if (await this.checkLabels(post)) {
             this.hidePost(post)
         }
     }
@@ -36,24 +42,14 @@ class FeedCleaner {
      * @param {Node} post
      * @returns
      */
-    async hasSponsoredLabel(post) {
+    async checkLabels(post) {
         const labelledElements = Array.from(post.querySelectorAll('span[aria-labelledby]')) ?? []
-        for (const element of labelledElements) {
-            const labelId = element.getAttribute('aria-labelledby')
-            let label = undefined
-            let tries = 0
-            while (!label && tries < 100) {
-                // Makes sure to wait for the label element creation.
-                // A mutator would be better if it was easier to pinpoint the label elements
-                await sleep(100)
-                label = document.querySelector("*[id='" + labelId + "']")?.innerText?.toLocaleLowerCase()
-                tries++
-                if (label === 'sponsored') {
-                    return true
-                }
-            }
-        }
-        return false
+        const labelsFetch = labelledElements.map(label => {
+            const labelId = label.getAttribute('aria-labelledby')
+            return this.doesElementHaveBannedLabel(labelId)
+        })
+
+        return (await Promise.all(labelsFetch)).includes(true)
     }
 
     hidePost(post) {
@@ -63,6 +59,25 @@ class FeedCleaner {
 
     stopObserving() {
         this.observer.disconnect()
+    }
+
+    doesElementHaveBannedLabel(id) {
+        return new Promise(async (resolve) => {
+            let label = undefined
+            let tries = 0
+            while (!label && tries < 10000) {
+                // Makes sure to wait for the label element creation.
+                // A mutator would be better if it was easier to pinpoint the label elements
+                await sleep(100)
+                label = document.querySelector("*[id='" + id + "']")?.innerText?.toLocaleLowerCase()
+                tries++
+            }
+            if (this.bannedAriaLabels.includes(label)) {
+                resolve(true)
+            }
+            resolve(false)
+
+        })
     }
 }
 
