@@ -39,17 +39,28 @@ class FeedCleaner {
 
     /**
      * Finds the Sponsored label by label ID
-     * @param {Node} post
+     * @param {HTMLElement} post
      * @returns
      */
     async checkLabels(post) {
         const labelledElements = Array.from(post.querySelectorAll('span[aria-labelledby]')) ?? []
-        const labelsFetch = labelledElements.map(label => {
+        let labelChecks = labelledElements.map(label => {
             const labelId = label.getAttribute('aria-labelledby')
-            return this.doesElementHaveBannedLabel(labelId)
+            return new Promise(async (resolve) => {
+                const labeledElement = await getElementByIdWithRetries(labelId)
+                if (labeledElement) {
+                    const label = labeledElement.innerText.toLocaleLowerCase()
+                    if (this.bannedAriaLabels.includes(label)) {
+                        resolve(true)
+                    }
+                }
+                resolve(false)
+            })
         })
 
-        return (await Promise.all(labelsFetch)).includes(true)
+        const hasBannedLabel = (await Promise.all(labelChecks)).includes(true)
+        labelChecks = null
+        return hasBannedLabel
     }
 
     hidePost(post) {
@@ -60,25 +71,26 @@ class FeedCleaner {
     stopObserving() {
         this.observer.disconnect()
     }
+}
 
-    doesElementHaveBannedLabel(id) {
-        return new Promise(async (resolve) => {
-            let label = undefined
-            let tries = 0
-            while (!label && tries < 10000) {
-                // Makes sure to wait for the label element creation.
-                // A mutator would be better if it was easier to pinpoint the label elements
-                await sleep(100)
-                label = document.querySelector("*[id='" + id + "']")?.innerText?.toLocaleLowerCase()
-                tries++
-            }
-            if (this.bannedAriaLabels.includes(label)) {
-                resolve(true)
-            }
-            resolve(false)
+/**
+ * Repeatedly tries to get an HTML DOM element by its ID every 100ms, up to 100 retries.
+ * @param {string} id - The ID of the DOM element to retrieve.
+ * @returns {Promise<HTMLElement|null>} - Resolves with the element if found, or null if not found after retries.
+ */
+async function getElementByIdWithRetries(id) {
+    let retries = 0;
 
-        })
+    while (retries < 300) {
+        const element = document.getElementById(id);
+        if (element) {
+            return element;
+        }
+        await sleep(100);
+        retries++;
     }
+
+    return null;
 }
 
 async function sleep(ms) {
